@@ -1,0 +1,9 @@
+{
+    "files.exclude": {
+        ".gitignore": true,
+        ".vscode/": true,
+        "libs/{libs,env,lang_ext}.js": true,
+        "node_modules/": true,
+        "package*.json": true
+    }
+}

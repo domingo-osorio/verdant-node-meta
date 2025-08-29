@@ -1,6 +1,6 @@
 import { google } from "googleapis";
 import * as fs from 'node:fs';
-import * as dotenv from './env.js';
+import * as dotenv from './libs/env.js';
 
 const { SPREADSHEET_ID: spreadsheetId, OUTPUT_FILE, JWT } = process.env;
 
