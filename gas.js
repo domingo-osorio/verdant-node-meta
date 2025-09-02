@@ -81,8 +81,16 @@ function update() {
   const removed_properties = difference(registered_properties, source_properties);
   const properties_to_keep = difference(registered_properties, removed_properties);
 
-  const new_property_row = (property) => [property, /*_import*/ false,	/*type_map*/ "string",	/*alias*/property.split(".")[1],	/*_new*/true,	/*removed*/ false];
-  const removed_property_row = ([property, _import, type_map, alias, _new, removed]) => [property, _import,	type_map,	alias,	_new,	true];
+  const new_property_row = (property) => [
+    property, 
+    /*_import*/ false,
+    /*type_map*/ property.split(".")[1] == "id"?"key":"string", 
+    /*key*/ property.split(".")[1] == "id"?property.split(".")[0]:"", 
+    /*alias*/property.split(".")[1],	
+    /*_new*/true,	
+    /*removed*/ false
+  ];
+  const removed_property_row = ([property, _import, type_map, key, alias, _new, removed]) => [property, _import,	type_map, key,	alias,	_new,	true];
   const updated_rows = ([
       ...properties_to_keep.map(property => registered_properties_data.find(x => x[0]==property)),
       ...new_properties.map(new_property_row),
@@ -93,6 +101,6 @@ function update() {
   Logger.log(updated_rows);
   properties_sheet.getRange(2, 1, updated_rows.length, updated_rows[0].length).setValues(updated_rows);
   css.getRange('__PROPERTIES!B2:B').insertCheckboxes();
-  css.getRange('__PROPERTIES!E2:E').insertCheckboxes();
   css.getRange('__PROPERTIES!F2:F').insertCheckboxes();
+  css.getRange('__PROPERTIES!G2:G').insertCheckboxes();
 }
