@@ -62,7 +62,7 @@ $.LTE = x => y => y <= x;
 
 $.OR = xs => xs.reduce((p, c) => p || c, false);
 $.AND= xs => xs.reduce((p, c) => p && c, true );
-
+$.trim = x => x.trim();
 $.map.dict = {};
 $.dict.entries.map = $.dict.entries.process($.map);
 $.dict.entries.filter = $.dict.entries.process($.filter);
