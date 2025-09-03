@@ -10,6 +10,11 @@ $.dict.entries = $.entries;
 $.dict.entries.process = (
     f => g => x => $.dict.from_entries(f(g)($.entries(x)))
 );
+$.set = xs => [...new Set(xs)];
+$.union = (xs, ys) => [...$.set([...xs, ...ys])];
+$.difference = (xs, ys)=> $.set(xs).filter(x => !$.set(ys).includes(x));
+$.intersection = (xs, ys) => $.difference($.difference($.union(xs, ys), $.difference(xs, ys)), $.difference(ys, xs));
+$.sym_difference = (xs, ys) => $.difference($.union(xs, ys), $.intersection(xs, ys));
 $.k = x => _ => x;
 $.tap = f => x => { f(x); return x; };
 $.print = $.tap(x => console.log(x));
@@ -21,7 +26,9 @@ $.right = xs => xs[1];
 $.flip = f => a => b => f(b)(a);
 $.apply = f => x => f(x);
 $.with = $.flip($.apply);
-$.split = fs => x => fs.map($.with(x));
+$.multifork = fs => x => fs.map($.with(x));
+$.split = x => xs => xs.split(x);
+$.trimmed_split = x => xs => xs.split(x).map($.trim);
 $.pair = l => r => [l, r];
 $.pair.with = ([l, r]) => f => f(l)(r);
 $.pair.apply = $.flip($.pair.with);
