@@ -5,6 +5,7 @@ const order_by_array = (xs) => {
     let $ = xs;
     $.ops = entries({ EQ, NEQ, GT, GTE, LTE, LT })
             .reduce((p, [key, value]) => ({...p, [key]: merge(iof)(value) }), {});
+    $.ops.iof = iof;
     return $;
 };
 

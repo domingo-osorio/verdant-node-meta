@@ -67,7 +67,6 @@ const group_by = selector => xs => {
     xs.map(x => { groups[selector(x)] = selector(x) in groups ? [...groups[selector(x)], x]:[x]; });
     return groups;
 };
-const group_selector = x => x.type;
 
 const prop_data = remove_columns(is_included_at(['new', 'removed']))([ "properties", SOURCE_DATA["__PROPERTIES"]])[1].filter(x => x[0] != "");
 
@@ -90,7 +89,7 @@ const board_preset_parser = x => {
 };
 
 const mana_cost_parser = x => (x == "0+") ? -1 : Number(x);
-const maps= {
+const maps = {
     "int": Number,
     "string": id,
     "strings": JSON.parse,
@@ -110,10 +109,11 @@ const to_mapper = ([prop_path, _import, mapper, key, alias]) => {
         return pipe([JSON.parse, filter(id)]);
     }
     
-    return mapper in maps? maps[mapper]:id;
+    return mapper in maps? maps[mapper] : id;
 };
 
-const prop_data_to_dicts = rest(prop_data).map(([prop_path, _import, mapper, key, alias]) => ({
+const prop_data_to_dicts = rest(prop_data)
+    .map(([prop_path, _import, mapper, key, alias]) => ({
         type: prop_path.split(".")[0],
         property: prop_path.split(".")[1],
         alias: alias,
@@ -123,7 +123,7 @@ const prop_data_to_dicts = rest(prop_data).map(([prop_path, _import, mapper, key
     })
 );
 
-const properties = group_by(group_selector)(prop_data_to_dicts);
+const properties = group_by(x => x.type)(prop_data_to_dicts);
 const type_mappers = dict.from_entries(
     entries(properties)
     .map(([type, props]) => [
@@ -180,12 +180,12 @@ const orderers = pipe([
     dict.from_entries,
 ])(SOURCE_DATA[DROPDOWN]);
 
+const types_with_milestone = entries(parsed_data).filter(([type, values]) => 
+    MILESTONE in values[0]  // with milestone column
+    // commented out as the only one should be dropdown and it's already filtered out
+    // && "id" in values[0]    // when id is not pressent, is a meta table 
+).map(first);
 const filtered_by_active_milestone = dict.entries.map(([type, values]) =>  {
-    const types_with_milestone = entries(parsed_data).filter(([type, values]) => 
-        MILESTONE in values[0]  // with milestone column
-        // commented out as the only one should be dropdown and it's already filtered out
-        // && "id" in values[0]    // when id is not pressent, is a meta table 
-    ).map(first);
     if (!is_included_at(types_with_milestone)(type)) return [type, values];
     return [
         type,
@@ -203,9 +203,11 @@ const grouped_back_referenced_entries = dict.entries.map(([key, entries]) => [
 ])(grouped_back_references)
 const entry_filters = dict.entries.map(([key, values]) => [key, set(values.map(x => x.substr(key.length+1)).map(Number))])(grouped_back_referenced_entries);
 
-print(entry_filters); 
-// TODO: Filter out the entry_filters that have milestones
-// TODO: for those who doesn't have milestones, use entry_filters to reduce the data
+const entry_filters_for_types_without_milestone =  dict.entries.filter(pipe([first, is_included_at(types_with_milestone), NOT]))(entry_filters);
+const filtered_by_active_milestone_and_referenced_entries = dict.entries.map( ([type, rows]) => {
+    if (!(type in entry_filters_for_types_without_milestone)) return [type, rows];
+    return [type, rows.filter(pipe([prop("id"), is_included_at(entry_filters_for_types_without_milestone[type])]))]
+})(filtered_by_active_milestone);
 
 import * as fs from 'node:fs';
-fs.writeFileSync("./data2.json", JSON.stringify(filtered_by_active_milestone, null, 2));
+fs.writeFileSync("./data2.json", JSON.stringify(filtered_by_active_milestone_and_referenced_entries, null, 2));
