@@ -1,5 +1,7 @@
 import * as fs from 'node:fs';
 import {order_by_array} from './libs/libs.js';
+import { dropdown_as_entities } from './libs/00_ss_to_gc/dropdown_to_entities.js';
+import table from './libs/table.js';
 
 /* Knowledge */
 const MILESTONE = 'milestone';
@@ -13,20 +15,13 @@ const run = async _ => {
         process.env.IMPORTED_DATA,
         { with: { type: "json" } })
     ).default;
-
+    const new_dropdowns = dropdown_as_entities(SOURCE_DATA[DROPDOWN]);
+    
     // Remove milestone column
-    const remove_columns = columns_to_remove_selector => ([sheet_name, content]) => {
-        const content_without_columns = pipe([
-            transpose,
-            filter(pipe([
-                first,
-                columns_to_remove_selector, //is_included_at(columns_to_remove_selector),
-                NOT
-            ])),
-            transpose,
-        ]);
-        return [sheet_name, content_without_columns(content)];
-    };
+    const remove_columns = columns_to_remove_selector => ([sheet_name, _table]) => [
+        sheet_name,
+        table.drop_column.by_name.with_selector(columns_to_remove_selector)(_table)
+    ];
 
     const group_by = selector => xs => { 
         let groups = {};
@@ -35,7 +30,7 @@ const run = async _ => {
     };
 
     const prop_data = remove_columns(is_included_at(['new', 'removed']))([ "properties", SOURCE_DATA["__PROPERTIES"]])[1].filter(x => x[0] != "");
-
+    print(prop_data);
     const board_preset_parser = x => {
         if (!x) return [];
         return trimmed_split("\n")(x).flatMap(line => {
@@ -55,6 +50,11 @@ const run = async _ => {
     };
 
     const mana_cost_parser = x => (x == "0+") ? -1 : Number(x);
+    const dyn_eval_parser = x => {
+        if (x.startsWith("[")) { return JSON.parse(x) }
+        if (x == "ERROR") { print("WARNING"); return -1; }
+        return Number(x);
+    }
     const maps = {
         "int": Number,
         "string": id,
@@ -64,14 +64,20 @@ const run = async _ => {
         "foreign_keys": id,
         "mana_cost": mana_cost_parser,
         "board_preset": board_preset_parser,
+        "dyn_description": x => x.startsWith("~")? ["description", Number(x.substring(1))]:x,
+        "dyn_eval_name": pipe([JSON.parse, filter(id)]),
+        "dyn_eval_value": x => { 
+            const data = JSON.parse(x)
+            return data.map(dyn_eval_parser).filter(id);
+        }
     }
 
     const append_to = a => b => a + b;
-
+    const to_reference = a => b => [a, Number(b)];
     const to_mapper = ([prop_path, _import, mapper, key, alias]) => { 
-        if (mapper == "foreign_key" && !key.includes(".")) return append_to(`${key}_`);
+        if (mapper == "foreign_key" && !key.includes(".")) return x => [to_reference(key)(x)];
         if (mapper == "foreign_keys") {
-            if (!key.includes(".")) return pipe([JSON.parse, filter(id), map(append_to(`${key}_`))]);
+            if (!key.includes(".")) return pipe([JSON.parse, filter(id), map(to_reference(key))]);
             return pipe([JSON.parse, filter(id)]);
         }
         
@@ -167,18 +173,24 @@ const run = async _ => {
         key,
         entries.flatMap(([type, property]) => filtered_by_active_milestone[type].flatMap(prop(property))),
     ])(grouped_back_references)
-    const entry_filters = dict.entries.map(([key, values]) => [key, set(values.map(x => x.substr(key.length+1)).map(Number))])(grouped_back_referenced_entries);
+    const entry_filters = dict.entries.map(([key, values]) => [key, set(values.map(x => x[1]).map(Number))])(grouped_back_referenced_entries);
 
     const entry_filters_for_types_without_milestone =  dict.entries.filter(pipe([first, is_included_at(types_with_milestone), NOT]))(entry_filters);
     const filtered_by_active_milestone_and_referenced_entries = dict.entries.map( ([type, rows]) => {
         if (!(type in entry_filters_for_types_without_milestone)) return [type, rows];
-        return [type, rows.filter(pipe([prop("id"), is_included_at(entry_filters_for_types_without_milestone[type])]))]
+        return [
+            type, 
+            rows.filter(pipe([prop("id"), is_included_at(entry_filters_for_types_without_milestone[type])]))
+        ]
     })(filtered_by_active_milestone);
 
     // Clean-up process: Remove the data that is used for project management and won't end at the code.
     const milestones_removed = dict.entries.map(([type, rows]) => {
-    if (!is_included_at(types_with_milestone)(type)) return [type, rows];
-    return [type, rows.map(x => {delete x.milestone; return x})];
+        if (!is_included_at(types_with_milestone)(type)) return [type, rows];
+        return [type, rows.map(x => {
+            delete x.milestone;
+            return x;
+        })];
     })(filtered_by_active_milestone_and_referenced_entries);
 
     return milestones_removed;

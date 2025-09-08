@@ -1,5 +1,6 @@
-import * as fs from 'node:fs';
 import {order_by_array} from './libs/libs.js';
+import { dropdown_as_entities } from './libs/00_ss_to_gc/dropdown_to_entities.js';
+import {table} from './libs/table.js';
 
 /* Knowledge */
 const MILESTONE = 'milestone';
