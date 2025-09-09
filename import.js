@@ -17,4 +17,4 @@ let entries = await Promise.all(
     })
 );
 
-fs.writeFileSync(OUTPUT_FILE, JSON.stringify(Object.fromEntries(entries)));
+fs.writeFileSync(OUTPUT_FILE, JSON.stringify(Object.fromEntries(entries), null, 2));
