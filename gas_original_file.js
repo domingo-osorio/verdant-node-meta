@@ -43,6 +43,7 @@ function eval_ref(instruction) {
 };
 
 function preview_waterline(code) {
+  // Positions encoded as [y, x] so its [0] and [1] remains in order when accessing.
   let nums;
   const [_1,_2,_3,_4,_5,_6,_7,_8,_9,_10] = (nums = ["1️⃣","2️⃣","3️⃣","4️⃣","5️⃣","6️⃣","7️⃣","8️⃣","9️⃣", "🔟"]);
   const [empty, U, D, L, R] = ["⬜️","👆🏼","👇🏼","👈🏼","👉🏼"];
