@@ -27,7 +27,7 @@ $.flip = f => a => b => f(b)(a);
 $.apply = f => x => f(x);
 $.with = $.flip($.apply);
 $.multifork = fs => x => fs.map($.with(x));
-$.split = x => xs => xs.split(x);
+$.split = (x = "") => xs => xs.split(x);
 $.trimmed_split = x => xs => xs.split(x).map($.trim);
 $.pair = l => r => [l, r];
 $.pair.with = ([l, r]) => f => f(l)(r);
@@ -77,5 +77,21 @@ $.map.arr = {};
 $.map.arr.entries = f => $.pipe([$.entries, map(f)]);
 $.is_included_at = xs => x => xs.includes(x);
 $.starts_with = x => y => y.startsWith(x);
+$.using_index = predicate => (v,i) => predicate(i);
+$.is_odd = x => x%2 == 1;
+$.is_even = x => x%2 == 0;
+
+$.add = b => a => a+b;
+$.add.pairs = ([bx, by]) => ([ax, ay]) => [ax+bx, ay+by];
+$.scan = f => xs => {
+    let ys = [xs[0]];
+    xs.reduce((p, c) => {
+        const v = f(p)(c);
+        ys.push(v);
+        return v;
+    })
+    return ys;
+}
+
 Error.stackTraceLimit = Infinity;
 export default $;

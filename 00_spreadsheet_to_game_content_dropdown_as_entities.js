@@ -1,6 +1,11 @@
 import { dropdown_as_entities } from './libs/00_ss_to_gc/dropdown_to_entities.js';
 import table from './libs/table.js';
-import { board_preset_parser, mana_cost_parser } from './parsers.js';
+import {
+    board_preset_parser,
+    mana_cost_parser,
+    board_relic_slots_parser,
+    waterlines_parser,
+} from './parsers.js';
 import { bool_parser } from './libs/google_sheets.js';
 
 /* Knowledge */
@@ -52,6 +57,8 @@ const run = async _ => {
         "foreign_keys": id,
         "mana_cost": mana_cost_parser,
         "board_preset": board_preset_parser,
+        "board_relic_slots": board_relic_slots_parser,
+        "waterlines": waterlines_parser,
     }
 
     const to_reference = a => b => [a, Number(b)];
@@ -150,6 +157,8 @@ const run = async _ => {
 
     // Infer the referenced plant unit at the board property from the plant units that the same character profile has.
     filtered_by_ids.character_profile.map(x => x.board = x.board ? x.board.map(([plant_ref, position])=> [x.plant[plant_ref-1], position]) : []);
+    
+    save(JSON.stringify(filtered_by_ids, null, 2))("./build/data.json");
 
     return filtered_by_ids;
 };
