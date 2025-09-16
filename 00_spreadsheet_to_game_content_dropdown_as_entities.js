@@ -159,7 +159,12 @@ const run = async _ => {
     filtered_by_ids.character_profile.map(x => x.board = x.board ? x.board.map(([plant_ref, position])=> [x.plant[plant_ref-1], position]) : []);
     
     save(JSON.stringify(filtered_by_ids, null, 2))("./build/data.json");
+    
+    // remove milestone columns
+    const milestone_columns_removed = dict.entries.map(([type, data]) => [ type, map(x => { delete x[MILESTONE]; return x;})(data)])(filtered_by_ids);
+    const milestone_table_removed = dict.entries.filter(([type, data]) => type != MILESTONE)(milestone_columns_removed);
+    save(JSON.stringify(milestone_table_removed, null, 2))("./build/data_milestone.json");
 
-    return filtered_by_ids;
+    return milestone_table_removed;
 };
 export {run};
