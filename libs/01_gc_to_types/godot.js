@@ -11,7 +11,7 @@ godot.constant_declaration = ([_name, value]) => `const ${to_upper_snake(_name)}
 
 godot.abstract = x => `@abstract ${x}`;
 godot.abstract.class_name = name => godot.abstract(class_name(name));
-godot.abstract.class_name.with_parent = name => godot.abstract(class_name.with_parent(name));
+godot.abstract.class_name.with_parent = parent => name => godot.abstract(godot.class_name.with_parent(parent)(name));
 godot.abstract.function_signature = ([name, parameters]) => godot.abstract(`${ f_sign([name, parameters]) }\n`);
 
 export default godot;
