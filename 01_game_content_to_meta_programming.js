@@ -13,7 +13,7 @@ const run = async game_content => {
     let constant_types_2 = dict.entries.map(([type, data]) => [type, constant.new([type, data])])(constant_types);
 
     constant_types_2 = dict.entries.map(([type, data]) => [type, constant.render(data)])(constant_types_2);
-    dict.entries.map(([type, code]) => save(code)(`./output/code/${type}.gd`))(constant_types_2);
+    dict.entries.map(tap(([type, code]) => save(code)(`./output/code/${type}.gd`)))(constant_types_2);
     save(JSON.stringify(constant_types_2, null, 2))("./build/game_content_2.json");
     return game_content;
 };

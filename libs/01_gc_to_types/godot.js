@@ -1,8 +1,8 @@
 import { to_pascal_case, to_upper_snake } from '../case.js';
 
 let godot = {}
-godot.class_name = _name => `class_name ${to_pascal_case(_name)}\n`;
-godot.class_name.with_parent = parent => _name => `${godot.class_name(_name).slice(0,-1)} extends ${to_pascal_case(parent)}\n`;
+godot.class_name = name => `class_name ${to_pascal_case(name)}\n`;
+godot.class_name.with_parent = parent => name => `${godot.class_name(name).slice(0,-1)} extends ${to_pascal_case(parent)}\n`;
 
 const f_sign = ([name, parameters]) => `func ${name}(${join(", ")(parameters)})`;
 godot.function_signature = ([name, parameters]) => `${f_sign([name, parameters])}):\n`;

@@ -7,7 +7,7 @@ const snake_case = string => splitCaps(string).replace(/\W+/g, " ").split(/ |\B(
 // End of reference
 
 const capitalize = x => x[0].toUpperCase()+x.substring(1);
-const to_camel_case = pipe([split("_"), ([a, ...rest]) => [a, rest.map(capitalize)], join()]);
+const to_camel_case = pipe([split("_"), ([a, ...rest]) => [a, ...rest.map(capitalize)], join()]);
 const to_pascal_case = pipe([to_camel_case, capitalize]);
 const to_upper_snake = x => x.toUpperCase();
 

@@ -8,6 +8,27 @@ const expose_type = type => [
     godot.constant_declaration(["XS", type + "s"]),
 ];
 
+const CLASS = (_ => {
+    let c = {};
+    c.new = name => ({
+        name,
+        is_abstract: false,
+        is_extended_by: "",
+    });
+    c.render = ({name, is_abstract, is_extended_by}) => {
+        // Checks
+        
+        // render
+        return join()([
+            _class.new([name]).is_abstract(is_abstract).is_extended_by(is_extended_by).class_name(),
+            EMPTY_LINE,
+            ...expose_type(name),
+            ...map((x) => godot.constant_declaration([x.value, x.id]))(type_entries),
+        ]);
+    };
+    return c;
+})();
+
 const _class = (_ => {
     let type = {
         render: pipe([prop(RENDER), call]),
@@ -19,7 +40,7 @@ const _class = (_ => {
         let is_extended_by = "";
         
         type.is_abstract = b => { is_abstract = b; return type; }
-        type.is_extended_by = x => { is_extended_by = x; return type;}
+        type.is_extended_by = x => { is_extended_by = x; return type; }
 
         type.class_name = _ => (
             pipe([
@@ -52,7 +73,7 @@ const constant = (_ => {
         const type_ref_value = type_name;
 
         type[RENDER] = _ => join()([
-            _class.new(type_name).is_abstract(true).is_extended_by("object").class_name(),
+            _class.new([type_ref_value]).is_abstract(true).is_extended_by("object").class_name(),
             EMPTY_LINE,
             ...expose_type(type_ref_value),
             ...map((x) => godot.constant_declaration([x.value, x.id]))(type_entries),
