@@ -14,8 +14,13 @@ const CLASS = (_ => {
         name,
         is_abstract: false,
         is_extended_by: "",
+        constant_decl: [],
+
     });
-    c.render = ({name, is_abstract, is_extended_by}) => {
+    c.add_constant = pair_name_value => _class => { _class.constant_decl.push(pair_name_value); return _class; };
+    c.set_abstract = bool_           => _class => { _class.is_abstract = bool_;                 return _class; };
+    c.set_parent   = class_          => _class => { _class.is_extended_by = class_.name;        return _class; };
+    c.render = ({name, is_abstract, is_extended_by, constant_decl}) => {
         // Checks
         
         // render
@@ -23,7 +28,7 @@ const CLASS = (_ => {
             _class.new([name]).is_abstract(is_abstract).is_extended_by(is_extended_by).class_name(),
             EMPTY_LINE,
             ...expose_type(name),
-            ...map((x) => godot.constant_declaration([x.value, x.id]))(type_entries),
+            ...map(godot.constant_declaration)(constant_decl),
         ]);
     };
     return c;
