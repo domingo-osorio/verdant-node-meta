@@ -9,7 +9,7 @@ const client = await auth.getClient();
 const google_sheets = google.sheets({ version: "v4", auth: client });
 const data = (await google_sheets.spreadsheets.get({
      spreadsheetId, 
-     fields:"sheets/data/rowData/values(dataValidation(condition(type,values)),userEnteredValue,effectiveValue),sheets/properties/title",
+     fields:"sheets/data/rowData/values(dataValidation(condition(type,values)),userEnteredValue,effectiveValue),sheets/properties(title,sheetId)",
 })).data.sheets;
 
 fs.writeFileSync(OUTPUT_FILE_2, JSON.stringify(data, null, 2));
