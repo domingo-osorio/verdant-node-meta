@@ -35,9 +35,9 @@ $.pair = l => r => [l, r];
 $.pair.with = ([l, r]) => f => f(l)(r);
 $.pair.apply = $.flip($.pair.with);
 $.pair.swap = ([l, r]) => [r, l];
-$.is_array = x => (
-    Object.prototype.toString.call(x) === '[object Array]'
-);
+$.is_array  = x => Object.prototype.toString.call(x) === '[object Array]';
+$.is_string = x => Object.prototype.toString.call(x) === '[object String]';
+$.is_number = x => Object.prototype.toString.call(x) === '[object Number]';
 $.clone = x => (
     $.is_array(x)
     ? Object.assign([], x)

@@ -1,3 +1,4 @@
+import { to_pascal_case, to_upper_snake } from '../case.js';
 import godot from './godot.js';
 
 const EMPTY_LINE = '\n';
@@ -82,6 +83,8 @@ const constant = (_ => {
             EMPTY_LINE,
             ...expose_type(type_ref_value),
             ...map((x) => godot.constant_declaration([x.value, x.id]))(type_entries),
+            join('\n')(map((x) => `const ${to_upper_snake(`${type_name}_${x.id}`)} = ${to_upper_snake(x.value)}`)(type_entries)),
+            EMPTY_LINE,
         ]);
         return type;
     };
@@ -89,4 +92,59 @@ const constant = (_ => {
 })();
 
 
-export { constant };
+
+const item_holder_type = (_ => {
+    let type = {
+        render: pipe([prop(RENDER), call]),
+    };
+
+    type.new = x => {
+        let [type_name, type_entries] = x;
+        let type = {};
+
+        const type_ref_value = type_name;
+                
+        const inner_type_mapper_or_default = (item) => item == "type" ? `${type_name}_type`: item;
+        
+        const value_is_ref = value => (
+            is_array(value) && 
+            !value.find(pipe([is_array, NOT])) && 
+            value.find(pipe([find(is_array), NOT])) && 
+            !value.find(pipe([first, is_string, NOT])) && 
+            !value.find(pipe([right, is_number, NOT]))
+        )
+
+        const obj_to_godot = x => pipe([
+            entries,
+            map(([key, value]) => `${to_upper_snake(inner_type_mapper_or_default(key))}: ${
+                value_is_ref((value))
+                ? `[\n\t\t${join(",\n\t\t")(value.map((value => `ProcGen${(to_pascal_case((value)[0]))}.${to_upper_snake(value[0])}_${value[1]}`)))}\n\t]` 
+                : ((JSON.stringify(value) =="") ? "[]": JSON.stringify(value))
+            }`),
+            join(",\n\t"),
+            x => `{\n\t${x}\n}`
+        ])(x);//JSON.stringify;
+
+        let properties = type_entries.reduce((p,c) => set([...p, ...keys(c)]),[]).map(inner_type_mapper_or_default);
+        
+        type[RENDER] = _ => join()([
+            _class.new([type_ref_value]).is_abstract(true).is_extended_by("object").class_name(),
+            ...expose_type(type_ref_value),
+            join('\n')(map(x => `const ${to_upper_snake(x)} = "${x}"`)(properties)),
+            EMPTY_LINE,
+            EMPTY_LINE,
+            join('\n')(map(pipe([x => [x.id, x], ([id, item]) => `const ${to_upper_snake(type_ref_value+"_"+id)} = ${obj_to_godot(item)}`]))(type_entries)),
+            EMPTY_LINE,
+            EMPTY_LINE,
+            `const ${to_upper_snake(`${type_ref_value}s`)} = [\n\t${
+                join(',\n\t')(map(pipe([x => [x.id, x], ([id, item]) => to_upper_snake(type_ref_value+"_"+id)]))(type_entries))
+            }\n]`,
+            EMPTY_LINE,
+        ]);
+        return type;
+    };
+    return type;
+})();
+
+
+export { constant, item_holder_type};

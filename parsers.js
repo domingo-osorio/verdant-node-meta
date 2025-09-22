@@ -49,7 +49,7 @@ const board_relic_slots_parser = x => {
     const area_data =  filter_data(is_odd , valid_area_tiles);
     const relic_positions = map(get_positions_in_2d_where(EQ(rune)))(relic_data);
     const area_positions =  map(get_positions_in_2d_where(EQ(influenced)))(area_data);
-    return transpose([relic_positions, area_positions]);
+    return transpose([relic_positions, area_positions]);//.map(([[relic_pos], area_pos]) => [relic_pos, area_pos]);
 };
 
 const waterlines_parser = x => {
